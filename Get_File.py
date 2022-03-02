@@ -13,7 +13,11 @@ def get_title(url):
   title = bs4.BeautifulSoup(request, "html.parser")
   title = title.title.string[:-10]
   # print(title)
-  file_name = "".join([title[i] for i in range(15) if title[i].isalpha()])
+  if len(title) > 15:
+    new_title = title
+  else:
+    new_title = title[:15]
+  file_name = "".join([i for i in new_title if i.isalpha()])
   # print(file_name)
   return [title, file_name]
 

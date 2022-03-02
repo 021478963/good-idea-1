@@ -3,7 +3,7 @@ import json
 from discord.ext import commands
 import asyncio
 import Get_File
-from get_url import get_url
+from Get_Url import get_url
 
 playlist = []
 users = []
@@ -64,28 +64,23 @@ async def join(ctx):
     await ctx.send("Currently busy")
 
 @client.command()
-async def play(ctx, url = ''):
+async def play(ctx, *url):
   if voice_channel == None or not voice_channel.is_connected():
     await join(ctx)
-  if url == '':
+  if url is None:
     voice_channel.resume()
     return
 
+  url = " ".join(url)
+  url = get_url(url)
   title, file_name = Get_File.get_title(url)
   Get_File.download_song(file_name, url)
   file_name = "output\\" + file_name
 
   if not voice_channel.is_playing():
     playlist.append([title, file_name, ctx.author.id, url[-11:]])
-    # voice_channel.play(discord.FFmpegPCMAudio(source = file_name))
-
-    # member_name = str(ctx.author)
-    # message = discord.Embed(title = "Now Playing:")
-    # message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
-    # message.add_field(name = title, value = " added by: " + member_name)
     await print_now_playing(ctx)
     await player_controller(ctx)
-    # await ctx.send(embed = message)
   else:
     playlist.append([title, file_name, ctx.author.id, url[-11:]])
     playlist_length = len(playlist) - 1
@@ -94,7 +89,6 @@ async def play(ctx, url = ''):
     message_title = str(playlist_length) + number(playlist_length) + " in queue"
     message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
     message.add_field(name = message_title, value = "added by: " + member_name)
-
     await ctx.send(embed = message)
 
 
@@ -191,11 +185,10 @@ async def queue(ctx):
   # member_name = await ctx.guild.fetch_member(playlist[0][2])
     for i in range(1, len(playlist)):
       song_name = str(playlist[i][0])
-      print(song_name)
       queue_message = discord.Embed(title = song_name, color=0x6266ea)
       member_name = await ctx.guild.fetch_member(playlist[i][2])
       member_name = str(member_name)
-      queue_message.add_field(name = str(i) + number(i - 1) + " in queue", value=("added by: " + member_name), inline=False)
+      queue_message.add_field(name = str(i) + number(i) + " in queue", value=("added by: " + member_name), inline=False)
       queue_message.set_thumbnail(url="https://img.youtube.com/vi/" + playlist[i][3] + "/mqdefault.jpg")
       await ctx.send(embed = queue_message)
   
