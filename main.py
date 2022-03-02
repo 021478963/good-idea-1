@@ -7,7 +7,8 @@ playlist = []
 users = []
 voice_channel = None
 
-client = commands.Bot(command_prefix="!")
+intents = discord.Intents.default()
+client = commands.Bot(command_prefix="!", intents=intents)
 
 def read_config():
   with open("config.json") as file:
@@ -59,18 +60,66 @@ async def join(ctx):
     await ctx.send("Currently busy")
 
 @client.command()
-async def play(ctx, url):
+async def play(ctx, url = ""):
   if voice_channel == None or not voice_channel.is_connected():
     await join(ctx)
+  elif url == '':
+    voice_channel.resume()
+    return
   if not voice_channel.is_playing():
-    voice_channel.play(discord.FFmpegPCMAudio(source=url), after=after_play())
+    playlist.append([url, ctx.author.id])
+    voice_channel.play(discord.FFmpegPCMAudio(source=url))
+    await ctx.channel.send("Now playing " + url)
   else:
-    playlist.append(url)
+    playlist.append([url, ctx.author.id])
+    await player_controller()
+      
 
-def after_play():
-  print(playlist)
+@client.command()
+async def stop(ctx):
+  if voice_channel.is_playing():
+    voice_channel.stop()
+
+@client.command()
+async def pause(ctx):
+  if voice_channel.is_playing():
+    voice_channel.pause()
+  else:
+    await ctx.send("Not playing")
+
+@client.command()
+async def resume(ctx):
+  voice_channel.resume()
+
+async def player():
+  while voice_channel.is_playing():
+    await asyncio.sleep(1)
+  if len(playlist) > 0:
+    playlist.pop(0)
+  return
+
+async def player_controller():
+  while 1:
+    await player()
+    if len(playlist) > 0:
+      voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][0]))
+
+@client.command()
+async def queue(ctx):
+  message = discord.Embed(title = "Queue")
+  for i in range(len(playlist)):
+
+  # print(len(playlist))
+  # print(type(playlist[0][1]))
+  # print(int(playlist[0][1]))
   
-
+  # print(await ctx.guild.fetch_member(463917983069372416))
+    song_name = str(i + 1) + ": " + str(playlist[i][0])
+    member_name = await ctx.guild.fetch_member(playlist[i][1])
+    member_name = str(member_name.name)
+    message.add_field(name=song_name, value=("added by: " + member_name), inline=False)
+  await ctx.channel.send(embed=message)
+    
 
 
 init()
