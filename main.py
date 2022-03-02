@@ -3,6 +3,7 @@ import json
 from discord.ext import commands
 import asyncio
 import Get_File
+from get_url import get_url
 
 playlist = []
 users = []
@@ -35,7 +36,7 @@ async def on_voice_state_update(member, old_voicestate, new_voicestate):
   if old_voicestate.channel is voice_channel.channel and len(voice_channel.channel.members) == 1:
     await asyncio.sleep(10)
     if len(voice_channel.channel.members) == 1: # wait 20 seconds and check again
-      await disconnect()
+      await voice_channel.disconnect()
 
 async def disconnect():
   global playlist

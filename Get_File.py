@@ -5,15 +5,16 @@ import yt_dlp
 options_ytdlp = {
     'format': 'bestaudio',
     'paths': {"home": "\\output"},
+    'quiet': '1'
 }
 
 def get_title(url):
   request = requests.get(url).text
   title = bs4.BeautifulSoup(request, "html.parser")
   title = title.title.string[:-10]
-  print(title)
+  # print(title)
   file_name = "".join([title[i] for i in range(15) if title[i].isalpha()])
-  print(file_name)
+  # print(file_name)
   return [title, file_name]
 
 def download_song(file_name, url):
