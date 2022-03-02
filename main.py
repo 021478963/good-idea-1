@@ -59,7 +59,7 @@ async def join(ctx):
     await ctx.send("Currently busy")
 
 @client.command()
-async def play(ctx, url = ""):
+async def play(ctx, url = ''):
   if voice_channel == None or not voice_channel.is_connected():
     await join(ctx)
   elif url == '':
@@ -68,16 +68,50 @@ async def play(ctx, url = ""):
   if not voice_channel.is_playing():
     playlist.append([url, ctx.author.id])
     voice_channel.play(discord.FFmpegPCMAudio(source=url))
-    await ctx.channel.send("Now playing " + url)
+
+    member_name = str(ctx.author)
+    message = discord.Embed(title = "Now Playing:")
+    message.add_field(name = url, value = " added by: " + member_name)
+    await ctx.channel.send(embed = message)
   else:
     playlist.append([url, ctx.author.id])
+    playlist_length = len(playlist) - 1
+    member_name = str(ctx.author)
+    message = discord.Embed(title = url)
+    message_title = str(playlist_length) + number(playlist_length) + " in queue"
+    message.add_field(name = message_title, value = "added by: " + member_name)
+
+    await ctx.channel.send(embed = message)
     await player_controller()
+
+def number(playlist_length):
+  match playlist_length:
+    case 1:
+      return "st"
+    case 2:
+      return "nd"
+    case 3:
+      return "rd"
+    case _:
+      return "th"
       
 
 @client.command()
 async def stop(ctx):
-  if voice_channel.is_playing():
+  if voice_channel is None:
+    await ctx.channel.send("Not connected")
+  elif voice_channel.is_playing():
+    global playlist
+    playlist = []
     voice_channel.stop()
+
+@client.command()
+async def skip(ctx):
+  if voice_channel is None:
+    await ctx.channel.send("Not connected")
+  else:
+    voice_channel.stop()
+    await player_controller()
 
 @client.command()
 async def pause(ctx):
@@ -102,22 +136,33 @@ async def player_controller():
     await player()
     if len(playlist) > 0:
       voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][0]))
+    else:
+      return
 
 @client.command()
 async def queue(ctx):
+  if len(playlist) == 0:
+    message = discord.Embed(title = "Not playing")
+    await ctx.channel.send(embed = message)
+    return
   message = discord.Embed(title = "Now Playing")
-
+  queue_message = discord.Embed(title = "Queue")
   member_name = await ctx.guild.fetch_member(playlist[0][1])
   message.add_field(name = playlist[0][0], value=("added by: " + str(member_name)), inline=False)
-  message.add_field(name = "Queue", value = "⠀")
 
   for i in range(1,len(playlist)):
     song_name = str(i) + ": " + str(playlist[i][0])
     member_name = await ctx.guild.fetch_member(playlist[i][1])
     member_name = str(member_name)
-    message.add_field(name=song_name, value=("added by: " + member_name), inline=False)
-  await ctx.channel.send(embed=message)
-    
+    queue_message.add_field(name=song_name, value=("added by: " + member_name), inline=False)
+  await ctx.channel.send(embed = message)
+  await ctx.channel.send(embed = queue_message)
 
+@client.command()
+async def disconnect(ctx):
+  global voice_channel
+  await voice_channel.disconnect()
+  voice_channel = None
+    
 
 init()
