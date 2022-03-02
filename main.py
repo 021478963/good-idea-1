@@ -190,6 +190,7 @@ async def queue(ctx):
   # member_name = await ctx.guild.fetch_member(playlist[0][2])
     for i in range(1, len(playlist)):
       song_name = str(playlist[i][0])
+      print(song_name)
       queue_message = discord.Embed(title = song_name, color=0x6266ea)
       member_name = await ctx.guild.fetch_member(playlist[i][2])
       member_name = str(member_name)

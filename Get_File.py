@@ -8,7 +8,7 @@ options_ytdlp = {
 }
 
 def get_title(url):
-  request = requests.get(url = "https://youtu.be/5CSFEaVz-k4").text
+  request = requests.get(url).text
   title = bs4.BeautifulSoup(request, "html.parser")
   title = title.title.string[:-10]
   print(title)
