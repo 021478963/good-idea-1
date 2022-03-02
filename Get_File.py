@@ -8,11 +8,11 @@ options_ytdlp = {
 }
 
 def get_title(url):
-  html_content = requests.get(url).content
-  html_content = bs4.BeautifulSoup(html_content, "html.parser")
-  title = html_content.title.string[:-10] # Youtube's titles always end in "- Youtube"
+  request = requests.get(url = "https://youtu.be/5CSFEaVz-k4").text
+  title = bs4.BeautifulSoup(request, "html.parser")
+  title = title.title.string[:-10]
   print(title)
-  file_name = "".join([i for i in title if i.isalpha()])
+  file_name = "".join([title[i] for i in range(15) if title[i].isalpha()])
   print(file_name)
   return [title, file_name]
 

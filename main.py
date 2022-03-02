@@ -193,7 +193,7 @@ async def queue(ctx):
       queue_message = discord.Embed(title = song_name, color=0x6266ea)
       member_name = await ctx.guild.fetch_member(playlist[i][2])
       member_name = str(member_name)
-      queue_message.add_field(name = str(i) + number(len(playlist) - 1) + " in queue", value=("added by: " + member_name), inline=False)
+      queue_message.add_field(name = str(i) + number(i - 1) + " in queue", value=("added by: " + member_name), inline=False)
       queue_message.set_thumbnail(url="https://img.youtube.com/vi/" + playlist[i][3] + "/mqdefault.jpg")
       await ctx.send(embed = queue_message)
   
