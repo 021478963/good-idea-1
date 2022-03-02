@@ -40,10 +40,16 @@ async def on_voice_state_update(member, old_voicestate, new_voicestate):
       global playlist
       playlist = []
 
-async def disconnect():
+@client.command()
+async def disconnect(ctx):
   global playlist
-  await voice_channel.disconnect()
+  if voice_channel is not None:
+    await voice_channel.disconnect()
   playlist = []
+
+@client.command()
+async def dc(ctx):
+  await disconnect(ctx)
 
 @client.command()
 async def test(ctx):
@@ -57,6 +63,7 @@ async def join(ctx):
     message = discord.Embed(title = "Not connected to any voice channels.", color=0xea6262)
     message.set_footer(text = "summon me with !join")
     await ctx.send(embed = message)
+    return True
   elif voice_channel is None:
     voice_channel = await ctx.author.voice.channel.connect()
   elif not voice_channel.is_connected():
@@ -64,12 +71,14 @@ async def join(ctx):
     voice_channel = await ctx.author.voice.channel.connect()
   else:
     await ctx.send("Currently busy")
+  return False
 
 @client.command()
 async def play(ctx, *url):
   if voice_channel == None or not voice_channel.is_connected():
-    await join(ctx)
-  if url is None:
+    if (await join(ctx)):
+      return
+  if len(url) == 0:
     voice_channel.resume()
     return
 
@@ -79,21 +88,22 @@ async def play(ctx, *url):
   Get_File.download_song(file_name, url)
   file_name = "output\\" + file_name
 
-  if not voice_channel.is_playing():
+  if len(playlist) == 0:
     playlist.append([title, file_name, ctx.author.id, url[-11:]])
-    try:
-      await player_controller(ctx)
-      return
-    except:
-      print("song was queued kinda fast..")
-  playlist.append([title, file_name, ctx.author.id, url[-11:]])
-  playlist_length = len(playlist) - 1
-  member_name = str(ctx.author)
-  message = discord.Embed(title = title, color=0x6266ea)
-  message_title = str(playlist_length) + number(playlist_length) + " in queue"
-  message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
-  message.add_field(name = message_title, value = "added by: " + member_name)
-  await ctx.send(embed = message)
+    await player_controller(ctx)
+  else:
+    playlist.append([title, file_name, ctx.author.id, url[-11:]])
+    playlist_length = len(playlist) - 1
+    member_name = str(ctx.author)
+    message = discord.Embed(title = title, color=0x6266ea)
+    message_title = str(playlist_length) + number(playlist_length) + " in queue"
+    message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
+    message.add_field(name = message_title, value = "added by: " + member_name)
+    await ctx.send(embed = message)
+
+@client.command()
+async def p(ctx, *url):
+  await play(ctx, *url)
 
 
 def number(playlist_length):
@@ -127,7 +137,11 @@ async def skip(ctx):
     message.set_footer(text = "summon me with !join")
     await ctx.send(embed = message)
   else:
-    if len(playlist) == 1:
+    if len(playlist) == 0:
+      message = discord.Embed(title = "Not playing", color=0xea6262)
+      message.set_footer(text = "play something with !play [Youtube url]")
+      await ctx.send(embed = message)
+    elif len(playlist) == 1:
       voice_channel.stop()
       message = discord.Embed(title = "End of queue.", color=0x6266ea)
       await ctx.send(embed = message)
@@ -138,6 +152,10 @@ async def skip(ctx):
       playlist = temp_playlist
       voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
       await print_now_playing(ctx)
+
+@client.command()
+async def s(ctx):
+  await skip(ctx)
 
 @client.command()
 async def resume(ctx):
@@ -160,12 +178,16 @@ async def player_controller(ctx):
   voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
   while 1:
     await player()
-    playlist.pop(0)
     if len(playlist) > 0:
+      playlist.pop(0)
       await print_now_playing(ctx)
       voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
     else:
       return
+
+@client.command()
+async def r(ctx):
+  await resume(ctx)
 
 @client.command()
 async def pause(ctx):
@@ -196,29 +218,30 @@ async def queue(ctx):
       queue_message.add_field(name = str(i) + number(i) + " in queue", value=("added by: " + member_name), inline=False)
       queue_message.set_thumbnail(url="https://img.youtube.com/vi/" + playlist[i][3] + "/mqdefault.jpg")
       await ctx.send(embed = queue_message)
-  
 
 @client.command()
-async def disconnect(ctx):
-  global voice_channel
-  if voice_channel is not None:
-    await voice_channel.disconnect()
-    voice_channel = None
+async def q(ctx):
+  await queue(ctx)
 
 @client.command()
 async def help(ctx):
   message = discord.Embed(title = "Help", color=0x6266ea)
   message.add_field(name = "Join", value = "Summon bot to active voice channel.", inline = False)
   message.add_field(name = "Disconnect", value = "Disconnects bot from active voice channel.", inline = False)
-  message.add_field(name = "Play", value = "Play Youtube URL", inline = False)
+  message.add_field(name = "Play", value = "Play Youtube URL.", inline = False)
   message.add_field(name = "Pause", value = "Pauses music playback.", inline = False)
   message.add_field(name = "Resume", value = "Resumes music playback.", inline = False)
   message.add_field(name = "Skip", value = "Skips current song.", inline = False)
   message.add_field(name = "Stop", value = "Stops music playback, clears queue.", inline = False)
   message.add_field(name = "Queue", value = "Brings up queue.", inline = False)
+  message.add_field(name = "Now Playing", value = "Shows current song.", inline = False)
   message.set_thumbnail(url = "https://cdn.discordapp.com/attachments/847111780504698910/872312847944785940/29f9ce2feb6c0d59bd893af9df7c90be.png")
   message.set_footer(text = "\nmade with great pain")
   await ctx.send(embed = message)
+
+@client.command()
+async def h(ctx):
+  await help(ctx)
 
 async def print_now_playing(ctx):
   member_name = str(ctx.author)
@@ -227,5 +250,18 @@ async def print_now_playing(ctx):
   message.add_field(name = playlist[0][0], value = " added by: " + member_name)
   await ctx.send(embed = message)
 
+@client.command()
+async def now(ctx, next_word = ""):
+  if next_word == "playing": 
+    if voice_channel is not None and voice_channel.is_playing():
+      await print_now_playing(ctx)
+    else:
+      message = discord.Embed(title = "Not playing", color=0xea6262)
+      message.set_footer(text = "play something with !play [Youtube url]")
+      await ctx.send(embed = message)
+  
+@client.command()
+async def np(ctx):
+  await now(ctx, "playing")
 
 init()
