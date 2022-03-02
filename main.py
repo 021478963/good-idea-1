@@ -37,6 +37,8 @@ async def on_voice_state_update(member, old_voicestate, new_voicestate):
     await asyncio.sleep(10)
     if len(voice_channel.channel.members) == 1: # wait 20 seconds and check again
       await voice_channel.disconnect()
+      global playlist
+      playlist = []
 
 async def disconnect():
   global playlist
@@ -79,17 +81,19 @@ async def play(ctx, *url):
 
   if not voice_channel.is_playing():
     playlist.append([title, file_name, ctx.author.id, url[-11:]])
-    await print_now_playing(ctx)
-    await player_controller(ctx)
-  else:
-    playlist.append([title, file_name, ctx.author.id, url[-11:]])
-    playlist_length = len(playlist) - 1
-    member_name = str(ctx.author)
-    message = discord.Embed(title = title, color=0x6266ea)
-    message_title = str(playlist_length) + number(playlist_length) + " in queue"
-    message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
-    message.add_field(name = message_title, value = "added by: " + member_name)
-    await ctx.send(embed = message)
+    try:
+      await player_controller(ctx)
+      return
+    except:
+      print("song was queued kinda fast..")
+  playlist.append([title, file_name, ctx.author.id, url[-11:]])
+  playlist_length = len(playlist) - 1
+  member_name = str(ctx.author)
+  message = discord.Embed(title = title, color=0x6266ea)
+  message_title = str(playlist_length) + number(playlist_length) + " in queue"
+  message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
+  message.add_field(name = message_title, value = "added by: " + member_name)
+  await ctx.send(embed = message)
 
 
 def number(playlist_length):
@@ -152,6 +156,7 @@ async def player():
   return
 
 async def player_controller(ctx):
+  await print_now_playing(ctx)
   voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
   while 1:
     await player()
@@ -197,7 +202,7 @@ async def queue(ctx):
 async def disconnect(ctx):
   global voice_channel
   if voice_channel is not None:
-    voice_channel.disconnect()
+    await voice_channel.disconnect()
     voice_channel = None
 
 @client.command()
