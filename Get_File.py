@@ -22,7 +22,7 @@ def download_song(file_name, url):
     yt.download(url)
 
 if __name__ == "__main__":
-  url = input("url")
+  url = "https://www.youtube.com/watch?v=5CSFEaVz-k4"
   titles = get_title(url)
-  print(titles[1])
-  download_song(titles[1], url)
+  # print(titles[1])
+  # download_song(titles[1], url)

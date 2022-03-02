@@ -1,21 +1,9 @@
-import yt_dlp
 import requests
 import bs4
 
-headers = requests.get("https://youtu.be/5CSFEaVz-k4").content
-
-headers = bs4.BeautifulSoup(headers, "html.parser")
-header = headers.title.string[:-10]
-print(header)
-header = "".join([i for i in header if i.isalpha()])
-print(header)
-
-options = {
-    'format': 'bestaudio',
-    'writethumbnail': '1',
-    'paths': {"home": "\\output"},
-    'outtmpl': "{file_name}".format(file_name = "hello")
-}
-with yt_dlp.YoutubeDL(options) as ydl:
-    options['outtmpl'] = "{}".format(header)
-    yt_dlp.YoutubeDL(options).download(["https://www.youtube.com/shorts/46pra8NwhzU"])
+request = requests.get(url = "https://youtu.be/5CSFEaVz-k4").text
+title = bs4.BeautifulSoup(request, "html.parser")
+title = title.title.string[:-10]
+print(title)
+file_name = "".join([title[i] for i in range(15) if title[i].isalpha()])
+print(file_name)
