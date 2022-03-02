@@ -48,7 +48,6 @@ async def test(ctx):
 async def join(ctx):
   vc = ctx.author.voice
   global voice_channel 
-  print(voice_channel)
   if (vc == None):
     await ctx.send("Join a voice channel")
   elif voice_channel is None:
@@ -106,17 +105,16 @@ async def player_controller():
 
 @client.command()
 async def queue(ctx):
-  message = discord.Embed(title = "Queue")
-  for i in range(len(playlist)):
+  message = discord.Embed(title = "Now Playing")
 
-  # print(len(playlist))
-  # print(type(playlist[0][1]))
-  # print(int(playlist[0][1]))
-  
-  # print(await ctx.guild.fetch_member(463917983069372416))
-    song_name = str(i + 1) + ": " + str(playlist[i][0])
+  member_name = await ctx.guild.fetch_member(playlist[0][1])
+  message.add_field(name = playlist[0][0], value=("added by: " + str(member_name)), inline=False)
+  message.add_field(name = "Queue", value = "⠀")
+
+  for i in range(1,len(playlist)):
+    song_name = str(i) + ": " + str(playlist[i][0])
     member_name = await ctx.guild.fetch_member(playlist[i][1])
-    member_name = str(member_name.name)
+    member_name = str(member_name)
     message.add_field(name=song_name, value=("added by: " + member_name), inline=False)
   await ctx.channel.send(embed=message)
     
