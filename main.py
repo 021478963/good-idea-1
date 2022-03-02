@@ -74,7 +74,7 @@ async def play(ctx, url = ''):
   file_name = "output\\" + file_name
 
   if not voice_channel.is_playing():
-    playlist.append([title, file_name, ctx.author.id])
+    playlist.append([title, file_name, ctx.author.id, url[-11]])
     voice_channel.play(discord.FFmpegPCMAudio(source = file_name))
 
     member_name = str(ctx.author)
@@ -83,15 +83,16 @@ async def play(ctx, url = ''):
     message.add_field(name = title, value = " added by: " + member_name)
     await ctx.send(embed = message)
   else:
-    playlist.append([title, file_name, ctx.author.id])
+    playlist.append([title, file_name, ctx.author.id, url[-11:]])
     playlist_length = len(playlist) - 1
     member_name = str(ctx.author)
     message = discord.Embed(title = title)
     message_title = str(playlist_length) + number(playlist_length) + " in queue"
+    message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
     message.add_field(name = message_title, value = "added by: " + member_name)
 
     await ctx.send(embed = message)
-    await player_controller()
+    await player_controller(ctx)
 
 def number(playlist_length):
   match playlist_length:
@@ -137,14 +138,21 @@ async def resume(ctx):
 async def player():
   while voice_channel.is_playing():
     await asyncio.sleep(1)
-  if len(playlist) > 0:
-    playlist.pop(0)
+  # if len(playlist) > 0:
+  #   playlist.pop(0)
   return
 
-async def player_controller():
+async def player_controller(ctx):
   while 1:
     await player()
+    playlist.pop(0)
     if len(playlist) > 0:
+      print(playlist[0])
+      member_name = str(ctx.author)
+      message = discord.Embed(title = "Now Playing:")
+      message.set_thumbnail(url="https://img.youtube.com/vi/" + playlist[0][3] + "/mqdefault.jpg")
+      message.add_field(name = playlist[0][0], value = " added by: " + member_name)
+      await ctx.send(embed = message)
       voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
     else:
       return
