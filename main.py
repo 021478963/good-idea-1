@@ -69,19 +69,18 @@ async def play(ctx, url = ''):
 
   title, file_name = Get_File.get_title(url)
   Get_File.download_song(file_name, url)
-  print("hi")
-  print("https://img.youtube.com/vi/" + url[:-11] + "/mqdefault.jpg")
   file_name = "output\\" + file_name
 
   if not voice_channel.is_playing():
-    playlist.append([title, file_name, ctx.author.id, url[-11]])
-    voice_channel.play(discord.FFmpegPCMAudio(source = file_name))
+    playlist.append([title, file_name, ctx.author.id, url[-11:]])
+    # voice_channel.play(discord.FFmpegPCMAudio(source = file_name))
 
-    member_name = str(ctx.author)
-    message = discord.Embed(title = "Now Playing:")
-    message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
-    message.add_field(name = title, value = " added by: " + member_name)
-    await ctx.send(embed = message)
+    # member_name = str(ctx.author)
+    # message = discord.Embed(title = "Now Playing:")
+    # message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
+    # message.add_field(name = title, value = " added by: " + member_name)
+    await player_controller(ctx)
+    # await ctx.send(embed = message)
   else:
     playlist.append([title, file_name, ctx.author.id, url[-11:]])
     playlist_length = len(playlist) - 1
@@ -92,7 +91,7 @@ async def play(ctx, url = ''):
     message.add_field(name = message_title, value = "added by: " + member_name)
 
     await ctx.send(embed = message)
-    await player_controller(ctx)
+
 
 def number(playlist_length):
   match playlist_length:
@@ -123,13 +122,15 @@ async def skip(ctx):
   else:
     if len(playlist) == 1:
       voice_channel.stop()
+      message = discord.Embed(title = "End of queue.")
+      await ctx.send(embed = message)
     else:
       temp_playlist = playlist
       temp_playlist.pop(0)
       voice_channel.stop()
       playlist = temp_playlist
-      print(playlist)
       voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
+      await print_now_playing(ctx)
 
 @client.command()
 async def resume(ctx):
@@ -143,16 +144,12 @@ async def player():
   return
 
 async def player_controller(ctx):
+  voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
   while 1:
     await player()
     playlist.pop(0)
     if len(playlist) > 0:
-      print(playlist[0])
-      member_name = str(ctx.author)
-      message = discord.Embed(title = "Now Playing:")
-      message.set_thumbnail(url="https://img.youtube.com/vi/" + playlist[0][3] + "/mqdefault.jpg")
-      message.add_field(name = playlist[0][0], value = " added by: " + member_name)
-      await ctx.send(embed = message)
+      await print_now_playing(ctx)
       voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
     else:
       return
@@ -170,23 +167,32 @@ async def queue(ctx):
     message = discord.Embed(title = "Not playing")
     await ctx.send(embed = message)
     return
-  message = discord.Embed(title = "Now Playing")
-  queue_message = discord.Embed(title = "Queue")
-  member_name = await ctx.guild.fetch_member(playlist[0][2])
-  message.add_field(name = playlist[0][0], value=("added by: " + str(member_name)), inline=False)
-
-  for i in range(1, len(playlist)):
-    song_name = str(i) + ": " + str(playlist[i][0])
-    member_name = await ctx.guild.fetch_member(playlist[i][2])
-    member_name = str(member_name)
-    queue_message.add_field(name=song_name, value=("added by: " + member_name), inline=False)
-  await ctx.send(embed = message)
-  await ctx.send(embed = queue_message)
+  elif len(playlist) == 1:
+    await print_now_playing(ctx)
+  else:
+    await print_now_playing(ctx)
+  # member_name = await ctx.guild.fetch_member(playlist[0][2])
+    for i in range(1, len(playlist)):
+      song_name = str(playlist[i][0])
+      queue_message = discord.Embed(title = song_name)
+      member_name = await ctx.guild.fetch_member(playlist[i][2])
+      member_name = str(member_name)
+      queue_message.add_field(name=str(i) + number(len(playlist) - 1) + " in queue", value=("added by: " + member_name), inline=False)
+      queue_message.set_thumbnail(url="https://img.youtube.com/vi/" + playlist[i][3] + "/mqdefault.jpg")
+      await ctx.send(embed = queue_message)
+  
 
 @client.command()
 async def disconnect(ctx):
   global voice_channel
   await voice_channel.disconnect()
   voice_channel = None
+
+async def print_now_playing(ctx):
+  member_name = str(ctx.author)
+  message = discord.Embed(title = "Now Playing:")
+  message.set_thumbnail(url="https://img.youtube.com/vi/" + playlist[0][3] + "/mqdefault.jpg")
+  message.add_field(name = playlist[0][0], value = " added by: " + member_name)
+  await ctx.send(embed = message)
 
 init()
