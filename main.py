@@ -4,6 +4,9 @@ from discord.ext import commands
 import asyncio
 import Get_File
 from Get_Url import get_url
+from rock_paper_scissors import rock_paper_scissors
+from rock_paper_scissors import print_score
+
 
 playlist = []
 users = []
@@ -176,12 +179,14 @@ async def player():
 async def player_controller(ctx):
   await print_now_playing(ctx)
   voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
+  playlist.pop(0)
   while 1:
     await player()
     if len(playlist) > 0:
-      playlist.pop(0)
+      print(playlist)
       await print_now_playing(ctx)
       voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
+      playlist.pop(0)
     else:
       return
 
@@ -263,5 +268,25 @@ async def now(ctx, next_word = ""):
 @client.command()
 async def np(ctx):
   await now(ctx, "playing")
+
+@client.command()
+async def rock(ctx, paper, scissors, option):
+  paper = paper.lower().strip()
+  scissors = scissors.lower().strip()
+  if paper == "paper" and scissors == "scissors":
+    await rock_paper_scissors(ctx, option)
+
+@client.command()
+async def rps(ctx, option):
+  await rock(ctx, "paper", "scissors", option)
+
+@client.command()
+async def scores(ctx):
+  await print_score(ctx)
+
+@client.command()
+async def repeat(ctx):
+  await ctx.send(ctx.message.content[8:])
+  await ctx.message.delete()
 
 init()
