@@ -23,9 +23,9 @@ def read_config():
 
 def init():
   config = read_config()
-  with open(config["userIDs"]) as file:
-    for line in file:
-      users.append(line.replace("\n", ""))
+  # with open(config["userIDs"]) as file:
+  #   for line in file:
+  #     users.append(line.replace("\n", ""))
   connect_db(config["mongoDB_url"])
   client.run(config["token"])
 
