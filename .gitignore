@@ -132,3 +132,4 @@ dmypy.json
 temp/*
 output/*
 *.json
+config.json
