@@ -6,6 +6,7 @@ import Get_File
 from Get_Url import get_url
 from rock_paper_scissors import rock_paper_scissors
 from rock_paper_scissors import print_score
+from rock_paper_scissors import connect_db
 
 
 playlist = []
@@ -25,7 +26,7 @@ def init():
   with open(config["userIDs"]) as file:
     for line in file:
       users.append(line.replace("\n", ""))
-
+  connect_db(config["mongoDB_url"])
   client.run(config["token"])
 
 @client.event

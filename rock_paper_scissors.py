@@ -3,6 +3,15 @@ import discord
 import pymongo
 import asyncio
 
+client = None
+
+def connect_db(url):
+  global client
+  try:
+    client = pymongo.MongoClient(url)
+  except:
+    print("Error with MongoDB client")
+
 async def rock_paper_scissors(ctx, option):
   my_input = option.strip().lower()
   random_choice = randrange(0, 3)
@@ -50,9 +59,7 @@ async def rock_paper_scissors(ctx, option):
 
 def update_score(ctx):
   user_id = ctx.author.id
-  client = pymongo.MongoClient()
-  db = client.rps
-  collection = db.scores
+  collection = client.rps.scores
   score = collection.find_one({"_id": user_id})
   if score is not None:
     new_score = score["score"] + 1
@@ -61,9 +68,7 @@ def update_score(ctx):
     collection.insert_one({"_id": user_id, "score": 1})
 
 async def print_score(ctx):
-  client = pymongo.MongoClient()
-  db = client.rps 
-  collection = db.scores
+  collection = client.rps.scores
   message = discord.Embed(title = "Scores:")
   for user in collection.find().sort("score", pymongo.DESCENDING):
     username = await ctx.bot.fetch_user(user["_id"])
