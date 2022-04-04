@@ -13,6 +13,6 @@ def get_url(search_term):
 def is_url(search_term):
   regex2 = re.compile("(https:\/\/)?(www\.)?(youtu)\.?(be)(\.com)*(\/watch\?v=)[a-zA-Z0-9_]{11}")
   if regex2.match(search_term):
-    return "https://www.youtube.com/watch?v=" + search_term[-10:]
+    return "https://www.youtube.com/watch?v=" + search_term[-11:]
   else:
     return get_url(search_term)

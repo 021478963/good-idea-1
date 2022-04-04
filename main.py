@@ -3,7 +3,7 @@ import json
 from discord.ext import commands
 import asyncio
 import Get_File
-from Get_Url import get_url
+from Get_Url import is_url
 from rock_paper_scissors import rock_paper_scissors
 from rock_paper_scissors import print_score
 from rock_paper_scissors import connect_db
@@ -87,7 +87,7 @@ async def play(ctx, *url):
     return
 
   url = " ".join(url)
-  url = get_url(url)
+  url = is_url(url)
   title, file_name = Get_File.get_title(url)
   Get_File.download_song(file_name, url)
   file_name = "output\\" + file_name
