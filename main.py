@@ -92,15 +92,13 @@ async def play(ctx, *url):
   Get_File.download_song(file_name, url)
   file_name = "output\\" + file_name
 
-  if len(playlist) == 0:
+  try:
     playlist.append([title, file_name, ctx.author.id, url[-11:]])
     await player_controller(ctx)
-  else:
-    playlist.append([title, file_name, ctx.author.id, url[-11:]])
-    playlist_length = len(playlist) - 1
+  except:
     member_name = str(ctx.author)
     message = discord.Embed(title = title, color=0x6266ea)
-    message_title = str(playlist_length) + number(playlist_length) + " in queue"
+    message_title = str(len(playlist) - 1) + number(len(playlist) - 1) + " in queue"
     message.set_thumbnail(url="https://img.youtube.com/vi/" + url[-11:] + "/mqdefault.jpg")
     message.add_field(name = message_title, value = "added by: " + member_name)
     await ctx.send(embed = message)
@@ -178,15 +176,16 @@ async def player():
   return
 
 async def player_controller(ctx):
-  await print_now_playing(ctx)
   voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
+  await print_now_playing(ctx)
+  await player()
   playlist.pop(0)
   while 1:
-    await player()
     if len(playlist) > 0:
       print(playlist)
       await print_now_playing(ctx)
       voice_channel.play(discord.FFmpegPCMAudio(source=playlist[0][1]))
+      await player()
       playlist.pop(0)
     else:
       return
