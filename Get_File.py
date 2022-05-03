@@ -15,7 +15,7 @@ def get_title(url):
   if len(title) < 15:
     new_title = title
   else:
-    new_title = title[:15]
+    new_title = title[:10] + title[-5:]
   file_name = "".join([i for i in new_title if i.isalpha()])
   return [title, file_name]
 

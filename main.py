@@ -249,7 +249,7 @@ async def h(ctx):
   await help(ctx)
 
 async def print_now_playing(ctx):
-  member_name = str(ctx.author)
+  member_name = str(await ctx.guild.fetch_member(playlist[0][2]))
   message = discord.Embed(title = "Now Playing:", color=0x6266ea)
   message.set_thumbnail(url="https://img.youtube.com/vi/" + playlist[0][3] + "/mqdefault.jpg")
   message.add_field(name = playlist[0][0], value = " added by: " + member_name)
